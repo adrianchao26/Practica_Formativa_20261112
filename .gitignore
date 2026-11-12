@@ -3,6 +3,7 @@
 !/scripts/
 !/logs/
 !/reports/
+!/output_samples/
 
 !/.gitignore
 
