@@ -1,0 +1,11 @@
+/*
+
+!/scripts/
+!/logs/
+!/reports/
+!/output_samples/
+
+!/.gitignore
+
+__pycache__/
+*.pyc

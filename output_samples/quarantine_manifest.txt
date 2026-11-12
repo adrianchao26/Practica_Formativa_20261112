@@ -1,0 +1,29 @@
+=== MANIFIESTO DE CUARENTENA - LOTE 202611 ===
+
+--- FICHEROS RECHAZADOS (quarantine/tampered/) ---
+transacciones_tienda_sur.csv  sha256_calculado=1c47dff4bf34eff59390c211052be942851d158740366ab4ab35159fd9986805
+
+--- REGISTROS DESCARTADOS POR MOTIVO (quarantine/bad_records.csv) ---
+nulo_en_columna_obligatoria: 3
+outlier_importe: 3
+importe_no_positivo: 2
+unidades_menores_a_1: 2
+timestamp_invalido: 1
+fecha_futura: 1
+fecha_fuera_del_anio_en_curso: 1
+TOTAL: 13
+
+--- DETALLE ---
+SIN_ID | Este_Valencia | nulo_en_columna_obligatoria
+SIN_ID | Este_Valencia | nulo_en_columna_obligatoria
+TXE-20261110-0034 | Este_Valencia | nulo_en_columna_obligatoria
+TXE-20261110-0039 | Este_Valencia | timestamp_invalido
+TXE-20261110-0010 | Este_Valencia | fecha_futura
+TXE-20261110-0022 | Este_Valencia | fecha_fuera_del_anio_en_curso
+TXE-20261110-0012 | Este_Valencia | importe_no_positivo
+TXE-20261110-0018 | Este_Valencia | importe_no_positivo
+TXE-20261110-0025 | Este_Valencia | unidades_menores_a_1
+TXE-20261110-0042 | Este_Valencia | unidades_menores_a_1
+TXE-20261110-0016 | Este_Valencia | outlier_importe
+TXE-20261110-0032 | Este_Valencia | outlier_importe
+TXE-20261110-0047 | Este_Valencia | outlier_importe

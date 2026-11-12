@@ -1,13 +1,19 @@
 from pathlib import Path
 import pandas as pd
+import hashlib
 
 #======================== COMPROBACION LIMPIEZA, COHERENCIA Y DETECCIÓN DE OUTLIERS ========================
 
 VERIFIED = Path("staging/verified")
 QUARANTINE = Path("quarantine")
 PROCESSED = Path("processed")
+REPORTS = Path("reports")
+OUTPUT = Path("output_samples")
+
 QUARANTINE.mkdir(exist_ok=True)
 PROCESSED.mkdir(exist_ok=True)
+REPORTS.mkdir(exist_ok=True)
+OUTPUT.mkdir(exist_ok=True)
 
 OBLIGATORIAS = ["id_transaccion", "timestamp", "importe_eur", "unidades"]
 rechazados = [] 
@@ -75,6 +81,8 @@ bad.to_csv(QUARANTINE / "bad_records.csv", index=False)
 df.to_csv(PROCESSED / "dataset_kdd_listo.csv", index=False)
 print(f"  quarantine/bad_records.csv      : {len(bad)} registros")
 print(f"  processed/dataset_kdd_listo.csv : {len(df)} registros")
+
+
 
 #======================== PERFILADO KDD Y VALIDACION PARA BI ========================
 
@@ -162,8 +170,37 @@ Total en `quarantine/bad_records.csv`: {len(bad)}.
 - Descartes: se descartaron los registros sin `id_transaccion` o sin `importe_eur`, porque son variables obligatorias que no se pueden tratar sin ellas.
 - Coherencia: se rechazaron timestamps invalidos, fechas futuras o de otro año, importes <= 0 y unidades < 1, por no tener sentido de negocio.
 - Outliers: se detectaron con la regla del IQR (1,5 x IQR) y se enviaron a cuarentena en lugar de borrarse, para poder gestionarlos.
-- Imputacion: los nulos en `categoria` y `metodo_pago` se imputaron con "Desconocido", ya que son categoricas y la mediana no se aplica; de esa forma se pierde el registro.
+- Imputacion: los nulos en `categoria` y `metodo_pago` se imputaron con "Desconocido", ya que son categoricas y la mediana no se aplica; de esa forma no se pierde el registro.
 - Resultado: el dataset limpio tiene {comp_limpio:.0f}% de completitud y una distribucion sin valores extremos, lo que garantiza la consistencia de los datos.
 """
+
+# --- Manifiesto de cuarentena ---
+lineas = ["=== MANIFIESTO DE CUARENTENA - LOTE 202611 ===", ""]
+
+# Fase 1: ficheros rechazados por firma SHA-256 discrepante
+lineas.append("--- FICHEROS RECHAZADOS (quarantine/tampered/) ---")
+ficheros_ko = sorted(TAMPERED.glob("*.csv"))
+if not ficheros_ko:
+    lineas.append("(ninguno)")
+for f in ficheros_ko:
+    lineas.append(f"{f.name}  sha256_calculado={hashlib.sha256(f.read_bytes()).hexdigest()}")
+
+# Fase 2: resumen de registros descartados por motivo
+lineas.append("")
+lineas.append("--- REGISTROS DESCARTADOS POR MOTIVO (quarantine/bad_records.csv) ---")
+for motivo, n in motivos.items():
+    lineas.append(f"{motivo}: {n}")
+lineas.append(f"TOTAL: {len(bad)}")
+
+# Fase 2: detalle registro a registro
+lineas.append("")
+lineas.append("--- DETALLE ---")
+for _, fila in bad.iterrows():
+    id_tx = fila["id_transaccion"] if pd.notna(fila["id_transaccion"]) else "SIN_ID"
+    lineas.append(f"{id_tx} | {fila['tienda']} | {fila['motivo_rechazo']}")
+
+(OUTPUT / "quarantine_manifest.txt").write_text("\n".join(lineas), encoding="utf-8")
+print("Manifiesto generado: output_samples/quarantine_manifest.txt")
+
 Path("reports/INFORME_CALIDAD_KDD.md").write_text(informe, encoding="utf-8")
 print("\nInforme generado: INFORME_CALIDAD_KDD.md")
